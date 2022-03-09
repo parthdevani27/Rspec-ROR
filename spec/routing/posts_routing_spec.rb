@@ -34,5 +34,16 @@ RSpec.describe PostsController, type: :routing do
     it "routes to #destroy" do
       expect(delete: "/posts/1").to route_to("posts#destroy", id: "1")
     end
+
+    it "routes to #users" do
+      expect(get: "/users").to route_to("users#users")
+    end
+    it "does not route to widgets/foo/bar" do
+      expect(:get => "/widgets/foo/bar").not_to be_routable
+    end
+    it "routes a named route" do
+    expect(:get => '/users').
+      to route_to(:controller => "users", :action => "users")
+    end
   end
 end

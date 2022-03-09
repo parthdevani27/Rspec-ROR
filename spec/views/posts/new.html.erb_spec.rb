@@ -21,6 +21,12 @@ RSpec.describe "posts/new", type: :view do
 
       assert_select "textarea[name=?]", "post[body]"
 
+      expect(controller.controller_path).to eq("posts")
+
+      expect(controller.request.path_parameters[:controller]).to eq("posts")
+
+      expect(controller.request.path_parameters[:action]).to eq("new")
+
     end
   end
 end

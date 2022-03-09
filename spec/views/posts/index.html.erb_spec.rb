@@ -27,5 +27,12 @@ RSpec.describe "posts/index", type: :view do
     assert_select "tr>td", text: current_user.id.to_s, count: 2
     assert_select "tr>td", text: 14.to_s, count: 1
     assert_select "tr>td", text: 12.to_s, count: 1
+    expect(rendered).to match(/TitlTitlee/)
+    expect(rendered).to match(/MyText/)
+  end
+   it "renders the <table>" do
+    render
+
+    expect(rendered).to match /<table>/
   end
 end
