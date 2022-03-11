@@ -18,13 +18,20 @@ RSpec.describe "/posts", type: :request do
   # adjust the attributes here as well.
   let(:valid_attributes) do
     {
-      'id' => 1,
+      'id' => 20,
       'title' => 'testtesttest',
       'body'  => 'valid body',
       'user' => current_user
     }
   end
 
+  post = Post.first_or_create(    {
+    'id' => 22,
+    'title' => 'testtesttest',
+    'body'  => 'valid body',
+    'user' => current_user
+  })
+  
   let(:invalid_attributes) do 
     {
       'id' => 'a',
@@ -53,7 +60,6 @@ RSpec.describe "/posts", type: :request do
    include AuthHelper
 
     it "renders a successful response" do
-      post = Post.create(valid_attributes)
       get post_url(post),headers: headers
       expect(response).to be_successful
       expect(response.body).to include post.title
@@ -75,17 +81,14 @@ RSpec.describe "/posts", type: :request do
 
   describe "GET /edit" do
     it "render a successful response" do
-      post = Post.create(valid_attributes)
       get edit_post_url(post)
       expect(response).to be_successful
     end
     it "render to edit page" do
-      post = Post.create(valid_attributes)
       get edit_post_url(post)
       expect(response).to render_template(:edit)
     end
     it "include post" do
-      post = Post.create(valid_attributes)
       get edit_post_url(post)
       expect(response.body).to include post.title
       expect(response.body).to include post.id.to_s
@@ -126,14 +129,12 @@ RSpec.describe "/posts", type: :request do
       }
     end
       it "updates the requested post" do
-        post = Post.create! valid_attributes
         patch post_url(post), params: { post: new_attributes  }
         post.reload
         expect(response).to have_http_status(302)
       end
 
       it "redirects to the post" do
-        post = Post.create! valid_attributes
         patch post_url(post), params: { post: valid_attributes }
         post.reload
         expect(response).to redirect_to(post_url(post))
@@ -142,7 +143,6 @@ RSpec.describe "/posts", type: :request do
 
     context "with invalid parameters" do
       it "renders a successful response " do
-        post = Post.create! valid_attributes
         patch post_url(post), params: { post: invalid_attributes }
         expect(response).to_not have_http_status(302)
         expect(response).to_not redirect_to(post_url(post))
@@ -152,14 +152,12 @@ RSpec.describe "/posts", type: :request do
 
   describe "/destroy" do
     it "delete the requested post" do
-      post = Post.create! valid_attributes
       expect {
         delete post_url(post)
       }.to change(Post, :count).by(-1)
     end
 
     it "redirect to the posts list page" do
-      post = Post.create! valid_attributes
       delete post_url(post)
       expect(response).to redirect_to(posts_url)
     end
