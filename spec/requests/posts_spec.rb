@@ -35,19 +35,17 @@ RSpec.describe "/posts", type: :request do
 
   describe "GET /index" do
     it "renders a successful response" do
-      post = Post.new(valid_attributes)
-      post.user = current_user
-      post.save
-      get posts_url(post)
+      get posts_path
       expect(response).to be_successful
     end
-    it "renders the index template" do
+    it "include posts" do
       get posts_path
       expect(response.body).to include("posts")
     end
     it "renders the index template" do
       get posts_path
       expect(response).to be_successful
+      expect(response).to render_template(:index)
     end
   end
 
@@ -55,12 +53,12 @@ RSpec.describe "/posts", type: :request do
    include AuthHelper
 
     it "renders a successful response" do
-      post = Post.new(valid_attributes)
-      post.user = current_user
-      post.save
+      post = Post.create(valid_attributes)
       get post_url(post),headers: headers
       expect(response).to be_successful
       expect(response.body).to include post.title
+      expect(response.body).to include post.id.to_s
+      expect(response).to render_template(:show)
     end
   end
 
@@ -69,15 +67,28 @@ RSpec.describe "/posts", type: :request do
       get new_post_url
       expect(response).to be_successful
     end
+    it "render new page" do
+      get new_post_url
+      expect(response).to render_template(:new)
+    end
   end
 
   describe "GET /edit" do
     it "render a successful response" do
-      post = Post.new(valid_attributes)
-      post.user = current_user
-      post.save
+      post = Post.create(valid_attributes)
       get edit_post_url(post)
       expect(response).to be_successful
+    end
+    it "render to edit page" do
+      post = Post.create(valid_attributes)
+      get edit_post_url(post)
+      expect(response).to render_template(:edit)
+    end
+    it "include post" do
+      post = Post.create(valid_attributes)
+      get edit_post_url(post)
+      expect(response.body).to include post.title
+      expect(response.body).to include post.id.to_s
     end
   end
 
@@ -85,37 +96,19 @@ RSpec.describe "/posts", type: :request do
     context "with valid parameters" do
       it "creates a new Post" do
         expect {
-          post posts_url, params: { post:{"id"=>1,"title"=>"Diseaseehbhb4", "body"=>'sssssssss', "user_id"=>current_user.id}}}.to change(Post, :count).by(1)
-            # expect(response).to be_successful
-      end
-
-    end
-
-    context "when valid" do
-
-      it "save post s" do
-        post posts_url, params: { post:{"id"=>3,"title"=>"Diseaseehbhb4", "body"=>'sssssssss', "user_id"=>current_user.id}}
-        expect(response).to have_http_status(302)
+          post posts_url, params: { post:valid_attributes}}.to change(Post, :count).by(1)
+            expect(response).to have_http_status(302)
       end
     end
-
-
-
     context "with invalid parameters" do
       it "does not create a new Post" do
         expect {
           post posts_url, params: { post: invalid_attributes }
         }.to change(Post, :count).by(0)
-      end
-        it "valid creates the requested post" do
+        expect(response).to_not have_http_status(302)
 
-        post posts_url, params: { post:{"id"=>1,"title"=>"Diseaseehbhb4", "body"=>'sssssssss', "user_id"=>current_user.id}}
-        # p response
-        # p "===="
-        expect(response).to have_http_status(302)
       end
-
-      it "renders a successful response (i.e. to display the 'new' template)" do
+      it "render when invalid parameter" do
         post posts_url, params: { post: {"id"=>1,"title"=>"Di", "body"=>'sss', "user_id"=>current_user.email} }
         expect(response).to_not be_successful
       end
@@ -130,14 +123,11 @@ RSpec.describe "/posts", type: :request do
         'id' => 1,
         'title' => 'testtesttest2',
         'body'  => 'valid33',
-        'user' => current_user
       }
     end
       it "updates the requested post" do
-        post = Post.new(valid_attributes)
-        post.user = current_user
-        post.save
-        patch post_url(post), params: { post: {title:'sgsterdfere',body:'sksksj',user_id:current_user.id}  }
+        post = Post.create! valid_attributes
+        patch post_url(post), params: { post: new_attributes  }
         post.reload
         expect(response).to have_http_status(302)
       end
@@ -151,23 +141,24 @@ RSpec.describe "/posts", type: :request do
     end
 
     context "with invalid parameters" do
-      it "renders a successful response (i.e. to display the 'edit' template)" do
+      it "renders a successful response " do
         post = Post.create! valid_attributes
         patch post_url(post), params: { post: invalid_attributes }
-        expect(response).to_not be_successful
+        expect(response).to_not have_http_status(302)
+        expect(response).to_not redirect_to(post_url(post))
       end
     end
   end
 
-  describe "DELETE /destroy" do
-    it "destroys the requested post" do
+  describe "/destroy" do
+    it "delete the requested post" do
       post = Post.create! valid_attributes
       expect {
         delete post_url(post)
       }.to change(Post, :count).by(-1)
     end
 
-    it "redirects to the posts list" do
+    it "redirect to the posts list page" do
       post = Post.create! valid_attributes
       delete post_url(post)
       expect(response).to redirect_to(posts_url)
