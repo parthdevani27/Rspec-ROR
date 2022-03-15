@@ -26,12 +26,11 @@ RSpec.describe "/posts", type: :request do
   end
 
   post = Post.first_or_create(    {
-    'id' => 22,
     'title' => 'testtesttest',
     'body'  => 'valid body',
     'user' => current_user
   })
-  
+
   let(:invalid_attributes) do 
     {
       'id' => 'a',
@@ -57,10 +56,9 @@ RSpec.describe "/posts", type: :request do
   end
 
   describe "GET /show" do
-   include AuthHelper
 
     it "renders a successful response" do
-      get post_url(post),headers: headers
+      get post_url(post)
       expect(response).to be_successful
       expect(response.body).to include post.title
       expect(response.body).to include post.id.to_s
@@ -123,7 +121,6 @@ RSpec.describe "/posts", type: :request do
 
     let(:new_attributes) do
       {
-        'id' => 1,
         'title' => 'testtesttest2',
         'body'  => 'valid33',
       }
@@ -135,7 +132,7 @@ RSpec.describe "/posts", type: :request do
       end
 
       it "redirects to the post" do
-        patch post_url(post), params: { post: valid_attributes }
+        patch post_url(post), params: { post: new_attributes }
         post.reload
         expect(response).to redirect_to(post_url(post))
       end
